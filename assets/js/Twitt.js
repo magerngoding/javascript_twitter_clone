@@ -2,6 +2,7 @@ class Twitt {
 
     constructor() {
         this._twitts = null;
+        this._loveTwitts = null;
     }
 
     getTwitts() {
@@ -15,6 +16,59 @@ class Twitt {
             }
         }
         return this._twitts;
+    }
+
+    userHasLikedTwittValidate(twittId, userId) {
+        // prosess pemeriksaan apakah user telah memberikan like tersebut
+        const loveTwitts = this.getLoveTwitts();
+
+        return loveTwitts.some(twitt => twitt.twittId === twittId && twitt.userId === userId);
+    }
+
+    getLoveTwitts() {
+        if (this._loveTwitts === null) {
+            try {
+                const storedLoveTwitts = localStorage.getItem('lovetwitts');
+                this._loveTwitts = storedLoveTwitts ? JSON.parse(storedLoveTwitts) : [];
+            }
+            catch (error) {
+                return this._loveTwitts = [];
+            }
+        }
+        return this._loveTwitts;
+    }
+
+    loveTwitt(loveTwittData) {
+        const { twittId, userId } = loveTwittData;
+
+        // membuat validasi apakah user tersebut telah memnerikan like pada tweet terkait 
+        if (this.userHasLikedTwittValidate(twittId, userId)) {
+            return {
+                success: false,
+                error: 'kamu tidak bisa memberikan like pada tweet yang sama'
+            }
+        }
+
+        const newLoveTwitt = {
+            id: Date.now(),
+            ...loveTwittData,
+        }
+
+        const loveTwitts = this.getLoveTwitts();
+
+        loveTwitts.push(newLoveTwitt);
+
+        try {
+            localStorage.setItem('lovetwitts', JSON.stringify(loveTwitts));
+            return {
+                success: true,
+            }
+        }
+        catch (error) {
+            return {
+                success: false,
+            }
+        }
     }
 
     saveTwitt(twittData) {
@@ -65,4 +119,5 @@ class Twitt {
             }
         }
     }
+
 }
